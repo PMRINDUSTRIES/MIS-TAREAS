@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Tareas</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+      color: #e4e4e7;
+    }
+    .app {
+      width: 100%;
+      max-width: 520px;
+      background: #26263a;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    h1 { font-size: 26px; margin-bottom: 4px; }
+    .sub { color: #9494a8; font-size: 14px; margin-bottom: 24px; }
+    .input-row { display: flex; gap: 10px; margin-bottom: 20px; }
+    #newTask {
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid #3a3a55;
+      border-radius: 12px;
+      background: #1e1e2e;
+      color: #e4e4e7;
+      font-size: 15px;
+      outline: none;
+    }
+    #newTask:focus { border-color: #7c7cf0; }
+    #addBtn {
+      padding: 0 22px;
+      border: none;
+      border-radius: 12px;
+      background: #7c7cf0;
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #addBtn:hover { background: #6a6ae0; }
+    .filters { display: flex; gap: 8px; margin-bottom: 16px; }
+    .filter {
+      padding: 6px 14px;
+      border: 1px solid #3a3a55;
+      border-radius: 20px;
+      background: transparent;
+      color: #9494a8;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filter.active { background: #7c7cf0; color: #fff; border-color: #7c7cf0; }
+    ul { list-style: none; }
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: #1e1e2e;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    li.done .text { text-decoration: line-through; color: #6a6a7c; }
+    .check {
+      width: 22px; height: 22px;
+      border: 2px solid #7c7cf0;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff;
+    }
+    li.done .check { background: #7c7cf0; }
+    .text { flex: 1; font-size: 15px; word-break: break-word; }
+    .del {
+      background: none; border: none; color: #6a6a7c;
+      font-size: 18px; cursor: pointer; padding: 4px;
+    }
+    .del:hover { color: #f0707c; }
+    .empty { text-align: center; color: #6a6a7c; padding: 30px 0; font-size: 14px; }
+    .footer { margin-top: 16px; font-size: 13px; color: #9494a8; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Mis Tareas</h1>
+    <p class="sub">Escribe una tarea y pulsa Enter o el botón +</p>
+
+    <div class="input-row">
+      <input id="newTask" type="text" placeholder="¿Qué tienes que hacer?" autocomplete="off">
+      <button id="addBtn">+</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter active" data-filter="all">Todas</button>
+      <button class="filter" data-filter="active">Pendientes</button>
+      <button class="filter" data-filter="done">Hechas</button>
+    </div>
+
+    <ul id="list"></ul>
+    <p class="footer" id="footer"></p>
+  </div>
+
+  <script>
+    // --- Estado de la app (los datos viven aquí) ---
+    let tasks = [];
+    let filter = "all";
+
+    // Cargar tareas guardadas (si el navegador lo permite)
+    try {
+      const saved = localStorage.getItem("tasks");
+      if (saved) tasks = JSON.parse(saved);
+    } catch (e) { /* en la vista previa puede no guardar; en la web publicada sí */ }
+
+    function save() {
+      try { localStorage.setItem("tasks", JSON.stringify(tasks)); } catch (e) {}
+    }
+
+    // --- Acciones ---
+    function addTask(text) {
+      const clean = text.trim();
+      if (!clean) return;
+      tasks.push({ id: Date.now(), text: clean, done: false });
+      save();
+      render();
+    }
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      save();
+      render();
+    }
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      save();
+      render();
+    }
+
+    // --- Pintar en pantalla ---
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      const visible = tasks.filter(t =>
+        filter === "all" ? true : filter === "done" ? t.done : !t.done
+      );
+
+      if (visible.length === 0) {
+        list.innerHTML = '<p class="empty">No hay tareas aquí todavía.</p>';
+      } else {
+        visible.forEach(t => {
+          const li = document.createElement("li");
+          if (t.done) li.className = "done";
+          li.innerHTML = `
+            <div class="check">${t.done ? "✓" : ""}</div>
+            <span class="text"></span>
+            <button class="del">✕</button>`;
+          li.querySelector(".text").textContent = t.text;
+          li.querySelector(".check").onclick = () => toggleTask(t.id);
+          li.querySelector(".del").onclick = () => deleteTask(t.id);
+          list.appendChild(li);
+        });
+      }
+
+      const pending = tasks.filter(t => !t.done).length;
+      document.getElementById("footer").textContent =
+        tasks.length === 0 ? "" : `${pending} pendiente(s) de ${tasks.length}`;
+    }
+
+    // --- Conectar botones e input ---
+    const input = document.getElementById("newTask");
+    document.getElementById("addBtn").onclick = () => { addTask(input.value); input.value = ""; input.focus(); };
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") { addTask(input.value); input.value = ""; }
+    });
+    document.querySelectorAll(".filter").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelector(".filter.active").classList.remove("active");
+        btn.classList.add("active");
+        filter = btn.dataset.filter;
+        render();
+      };
+    });
+
+    render();
+  </script>
+</body>
+</html>
