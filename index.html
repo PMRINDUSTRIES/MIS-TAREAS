@@ -116,6 +116,11 @@
   .nav-item.active .count { color: var(--accent); }
   .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text-soft); padding: 16px 11px 6px; font-weight: 600; }
   .side-footer { margin-top: auto; }
+  .nav-item.premium { color: var(--accent); font-weight: 600; }
+  .nav-item.premium:hover { background: var(--accent-soft); }
+  .pay-banner { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 50; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow); display: none; }
+  .pay-banner.ok { background: #e7f7ee; color: #1e8a4c; border: 1px solid #b6e6c9; }
+  .pay-banner.cancel { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
   .user-box { display: flex; align-items: center; gap: 9px; padding: 9px 11px; font-size: 12px; color: var(--text-soft); border-top: 1px solid var(--border); margin-top: 8px; padding-top: 14px; }
   .user-box .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
   .user-box .email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -237,6 +242,7 @@
   </div>
 
   <!-- ===== App ===== -->
+  <div class="pay-banner" id="payBanner"></div>
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="logo">PMR</div>
@@ -248,6 +254,7 @@
     <button class="nav-item" data-view="done"><span class="ic">✓</span> Completadas <span class="count" id="c-done"></span></button>
 
     <div class="side-footer">
+      <button class="nav-item premium" id="premiumBtn"><span class="ic">✦</span> Hazte Premium</button>
       <button class="nav-item" id="themeToggle"><span class="ic">☾</span> Modo oscuro</button>
       <button class="nav-item" id="logoutBtn"><span class="ic">⎋</span> Cerrar sesión</button>
       <div class="user-box">
@@ -356,6 +363,39 @@
   authPass.addEventListener("keydown", e => { if (e.key === "Enter") doAuth(); });
 
   document.getElementById("logoutBtn").onclick = async () => { await sb.auth.signOut(); };
+
+  // ===== Pago (Stripe vía función segura de Supabase) =====
+  const premiumBtn = document.getElementById("premiumBtn");
+  premiumBtn.onclick = async () => {
+    premiumBtn.disabled = true;
+    premiumBtn.innerHTML = '<span class="ic">…</span> Abriendo pago…';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
+      });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      throw new Error(data.error || "No se pudo iniciar el pago.");
+    } catch (e) {
+      console.error(e);
+      alert("Error al iniciar el pago: " + e.message);
+      premiumBtn.disabled = false;
+      premiumBtn.innerHTML = '<span class="ic">✦</span> Hazte Premium';
+    }
+  };
+
+  // Aviso al volver de Stripe
+  (function () {
+    const p = new URLSearchParams(location.search).get("pago");
+    if (!p) return;
+    const b = document.getElementById("payBanner");
+    if (p === "ok") { b.className = "pay-banner ok"; b.textContent = "✓ Pago completado. ¡Gracias!"; }
+    else { b.className = "pay-banner cancel"; b.textContent = "Pago cancelado."; }
+    b.style.display = "block";
+    setTimeout(() => { b.style.display = "none"; }, 5000);
+    history.replaceState(null, "", location.pathname);
+  })();
 
   // Reacciona a login / logout
   sb.auth.onAuthStateChange(async (_event, session) => {
