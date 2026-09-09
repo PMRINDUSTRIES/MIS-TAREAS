@@ -1,197 +1,338 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mis Tareas</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 40px 16px;
-      color: #e4e4e7;
-    }
-    .app {
-      width: 100%;
-      max-width: 520px;
-      background: #26263a;
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-    h1 { font-size: 26px; margin-bottom: 4px; }
-    .sub { color: #9494a8; font-size: 14px; margin-bottom: 24px; }
-    .input-row { display: flex; gap: 10px; margin-bottom: 20px; }
-    #newTask {
-      flex: 1;
-      padding: 14px 16px;
-      border: 1px solid #3a3a55;
-      border-radius: 12px;
-      background: #1e1e2e;
-      color: #e4e4e7;
-      font-size: 15px;
-      outline: none;
-    }
-    #newTask:focus { border-color: #7c7cf0; }
-    #addBtn {
-      padding: 0 22px;
-      border: none;
-      border-radius: 12px;
-      background: #7c7cf0;
-      color: #fff;
-      font-size: 22px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #addBtn:hover { background: #6a6ae0; }
-    .filters { display: flex; gap: 8px; margin-bottom: 16px; }
-    .filter {
-      padding: 6px 14px;
-      border: 1px solid #3a3a55;
-      border-radius: 20px;
-      background: transparent;
-      color: #9494a8;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .filter.active { background: #7c7cf0; color: #fff; border-color: #7c7cf0; }
-    ul { list-style: none; }
-    li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px;
-      background: #1e1e2e;
-      border-radius: 12px;
-      margin-bottom: 10px;
-    }
-    li.done .text { text-decoration: line-through; color: #6a6a7c; }
-    .check {
-      width: 22px; height: 22px;
-      border: 2px solid #7c7cf0;
-      border-radius: 6px;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; color: #fff;
-    }
-    li.done .check { background: #7c7cf0; }
-    .text { flex: 1; font-size: 15px; word-break: break-word; }
-    .del {
-      background: none; border: none; color: #6a6a7c;
-      font-size: 18px; cursor: pointer; padding: 4px;
-    }
-    .del:hover { color: #f0707c; }
-    .empty { text-align: center; color: #6a6a7c; padding: 30px 0; font-size: 14px; }
-    .footer { margin-top: 16px; font-size: 13px; color: #9494a8; text-align: center; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tareas · PMR</title>
+<style>
+  :root {
+    --accent: #e4483c;
+    --accent-soft: #fdecea;
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --sidebar: #faf9f7;
+    --text: #1f2024;
+    --text-soft: #8a8a94;
+    --border: #ececec;
+    --p1: #e4483c; --p2: #f2994a; --p3: #4a7cf2; --p4: #b7b7c0;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.05);
+  }
+  html[data-theme="dark"] {
+    --accent: #ff6b5e;
+    --accent-soft: #3a2320;
+    --bg: #16161a;
+    --surface: #1e1e24;
+    --sidebar: #1a1a1f;
+    --text: #ececf0;
+    --text-soft: #8c8c98;
+    --border: #2b2b33;
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    transition: background .25s, color .25s;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    padding: 22px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 10px 20px;
+  }
+  .logo {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 14px; letter-spacing: -.5px;
+  }
+  .brand b { font-size: 16px; letter-spacing: -.2px; }
+  .brand span { font-size: 11px; color: var(--text-soft); display: block; margin-top: -2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 11px; border-radius: 9px;
+    cursor: pointer; font-size: 14px; color: var(--text);
+    border: none; background: none; width: 100%; text-align: left;
+    transition: background .15s;
+  }
+  .nav-item:hover { background: var(--border); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .nav-item .ic { width: 18px; text-align: center; font-size: 15px; }
+  .nav-item .count { margin-left: auto; font-size: 12px; color: var(--text-soft); }
+  .nav-item.active .count { color: var(--accent); }
+  .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text-soft); padding: 16px 11px 6px; font-weight: 600; }
+  .theme-toggle { margin-top: auto; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    padding: 26px 40px 18px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .topbar h1 { font-size: 26px; letter-spacing: -.5px; }
+  .topbar .date { font-size: 13px; color: var(--text-soft); margin-top: 3px; }
+  .progress-wrap { text-align: right; }
+  .progress-wrap .pct { font-size: 22px; font-weight: 700; }
+  .progress-bar { width: 130px; height: 6px; background: var(--border); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+  .progress-bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .35s; }
+
+  .content { flex: 1; overflow-y: auto; padding: 8px 40px 40px; }
+
+  /* Add box */
+  .add-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 6px 6px 16px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+  }
+  .add-box input[type=text] {
+    flex: 1; border: none; background: none; outline: none;
+    font-size: 15px; color: var(--text); padding: 12px 0;
+  }
+  .add-box select, .add-box input[type=date] {
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    border-radius: 8px; padding: 7px 8px; font-size: 13px; outline: none; cursor: pointer;
+  }
+  .add-btn {
+    border: none; background: var(--accent); color: #fff;
+    width: 40px; height: 40px; border-radius: 10px; font-size: 22px;
+    cursor: pointer; flex-shrink: 0; transition: transform .1s, filter .15s;
+  }
+  .add-btn:hover { filter: brightness(1.08); }
+  .add-btn:active { transform: scale(.94); }
+
+  /* Task list */
+  .task {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 9px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    animation: pop .2s ease;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--p4); flex-shrink: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; transition: all .15s;
+  }
+  .check.p1 { border-color: var(--p1); } .check.p2 { border-color: var(--p2); }
+  .check.p3 { border-color: var(--p3); } .check.p4 { border-color: var(--p4); }
+  .task.done .check { background: var(--p4); border-color: var(--p4); }
+  .task-main { flex: 1; min-width: 0; }
+  .task-text { font-size: 15px; word-break: break-word; }
+  .task.done .task-text { text-decoration: line-through; color: var(--text-soft); }
+  .task-meta { display: flex; gap: 8px; margin-top: 4px; align-items: center; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  .badge.date { background: var(--bg); color: var(--text-soft); }
+  .badge.date.overdue { background: var(--accent-soft); color: var(--accent); }
+  .badge.prio { color: #fff; }
+  .badge.prio.p1 { background: var(--p1); } .badge.prio.p2 { background: var(--p2); }
+  .badge.prio.p3 { background: var(--p3); } .badge.prio.p4 { display: none; }
+  .del { background: none; border: none; color: var(--text-soft); font-size: 16px; cursor: pointer; opacity: 0; transition: opacity .15s, color .15s; padding: 4px; }
+  .task:hover .del { opacity: 1; }
+  .del:hover { color: var(--accent); }
+
+  .empty { text-align: center; padding: 70px 20px; color: var(--text-soft); }
+  .empty .big { font-size: 42px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  .menu-btn { display: none; }
+  @media (max-width: 720px) {
+    .sidebar { position: fixed; z-index: 20; height: 100%; transform: translateX(-100%); transition: transform .25s; }
+    .sidebar.open { transform: none; }
+    .menu-btn { display: inline-flex; background: none; border: none; font-size: 22px; color: var(--text); cursor: pointer; margin-right: 8px; }
+    .topbar, .content { padding-left: 20px; padding-right: 20px; }
+    .add-box { flex-wrap: wrap; }
+  }
+</style>
 </head>
 <body>
-  <div class="app">
-    <h1>Mis Tareas</h1>
-    <p class="sub">Escribe una tarea y pulsa Enter o el botón +</p>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">PMR</div>
+      <div><b>Tareas</b><span>by PMR</span></div>
+    </div>
+    <button class="nav-item active" data-view="today"><span class="ic">◎</span> Hoy <span class="count" id="c-today"></span></button>
+    <button class="nav-item" data-view="upcoming"><span class="ic">📅</span> Próximas <span class="count" id="c-upcoming"></span></button>
+    <button class="nav-item" data-view="all"><span class="ic">≡</span> Todas <span class="count" id="c-all"></span></button>
+    <button class="nav-item" data-view="done"><span class="ic">✓</span> Completadas <span class="count" id="c-done"></span></button>
 
-    <div class="input-row">
-      <input id="newTask" type="text" placeholder="¿Qué tienes que hacer?" autocomplete="off">
-      <button id="addBtn">+</button>
+    <button class="nav-item theme-toggle" id="themeToggle"><span class="ic">☾</span> Modo oscuro</button>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:flex-end">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div>
+          <h1 id="viewTitle">Hoy</h1>
+          <div class="date" id="todayDate"></div>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="pct" id="pct">0%</div>
+        <div class="progress-bar"><i id="progressFill"></i></div>
+      </div>
     </div>
 
-    <div class="filters">
-      <button class="filter active" data-filter="all">Todas</button>
-      <button class="filter" data-filter="active">Pendientes</button>
-      <button class="filter" data-filter="done">Hechas</button>
+    <div class="content">
+      <div class="add-box">
+        <input type="text" id="newTask" placeholder="Añadir una tarea…" autocomplete="off">
+        <select id="prio" title="Prioridad">
+          <option value="4">Prioridad</option>
+          <option value="1">P1 · Urgente</option>
+          <option value="2">P2 · Alta</option>
+          <option value="3">P3 · Media</option>
+          <option value="4">P4 · Baja</option>
+        </select>
+        <input type="date" id="due" title="Fecha límite">
+        <button class="add-btn" id="addBtn">+</button>
+      </div>
+      <div id="list"></div>
     </div>
+  </main>
 
-    <ul id="list"></ul>
-    <p class="footer" id="footer"></p>
-  </div>
+<script>
+  // ===== Capa de datos (fácil de cambiar por Supabase más adelante) =====
+  let tasks = [];
+  let view = "today";
 
-  <script>
-    // --- Estado de la app (los datos viven aquí) ---
-    let tasks = [];
-    let filter = "all";
+  try { const s = localStorage.getItem("pmr_tasks"); if (s) tasks = JSON.parse(s); }
+  catch (e) {}
+  function save() { try { localStorage.setItem("pmr_tasks", JSON.stringify(tasks)); } catch (e) {} }
 
-    // Cargar tareas guardadas (si el navegador lo permite)
-    try {
-      const saved = localStorage.getItem("tasks");
-      if (saved) tasks = JSON.parse(saved);
-    } catch (e) { /* en la vista previa puede no guardar; en la web publicada sí */ }
+  function addTask(text, prio, due) {
+    const clean = text.trim();
+    if (!clean) return;
+    tasks.push({ id: Date.now(), text: clean, prio: Number(prio) || 4, due: due || null, done: false });
+    save(); render();
+  }
+  function toggle(id) { tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t); save(); render(); }
+  function remove(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
 
-    function save() {
-      try { localStorage.setItem("tasks", JSON.stringify(tasks)); } catch (e) {}
+  // ===== Utilidades de fecha =====
+  function todayStr() { const d = new Date(); return d.toISOString().slice(0,10); }
+  function fmtDate(str) {
+    const d = new Date(str + "T00:00:00");
+    const t = todayStr();
+    if (str === t) return "Hoy";
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+    if (str === tomorrow.toISOString().slice(0,10)) return "Mañana";
+    return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+  }
+  function isOverdue(str) { return str && str < todayStr(); }
+
+  // ===== Filtros por vista =====
+  const titles = { today: "Hoy", upcoming: "Próximas", all: "Todas", done: "Completadas" };
+  function visibleTasks() {
+    const t = todayStr();
+    if (view === "done") return tasks.filter(x => x.done);
+    if (view === "today") return tasks.filter(x => !x.done && (!x.due || x.due <= t));
+    if (view === "upcoming") return tasks.filter(x => !x.done && x.due && x.due > t);
+    return tasks.filter(x => !x.done); // all
+  }
+
+  // ===== Render =====
+  function render() {
+    const list = document.getElementById("list");
+    const items = visibleTasks().sort((a,b) => (a.prio - b.prio) || ((a.due||"9") > (b.due||"9") ? 1 : -1));
+    list.innerHTML = "";
+
+    if (items.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="big">🎉</div><p>Nada por aquí. Disfruta el momento.</p></div>';
+    } else {
+      items.forEach(t => {
+        const el = document.createElement("div");
+        el.className = "task" + (t.done ? " done" : "");
+        const dueBadge = t.due ? `<span class="badge date ${isOverdue(t.due) && !t.done ? "overdue" : ""}">${fmtDate(t.due)}</span>` : "";
+        const prioBadge = `<span class="badge prio p${t.prio}">P${t.prio}</span>`;
+        el.innerHTML = `
+          <div class="check p${t.prio}">${t.done ? "✓" : ""}</div>
+          <div class="task-main">
+            <div class="task-text"></div>
+            <div class="task-meta">${prioBadge}${dueBadge}</div>
+          </div>
+          <button class="del">✕</button>`;
+        el.querySelector(".task-text").textContent = t.text;
+        el.querySelector(".check").onclick = () => toggle(t.id);
+        el.querySelector(".del").onclick = () => remove(t.id);
+        list.appendChild(el);
+      });
     }
 
-    // --- Acciones ---
-    function addTask(text) {
-      const clean = text.trim();
-      if (!clean) return;
-      tasks.push({ id: Date.now(), text: clean, done: false });
-      save();
+    // Contadores
+    const t = todayStr();
+    document.getElementById("c-today").textContent = tasks.filter(x => !x.done && (!x.due || x.due <= t)).length || "";
+    document.getElementById("c-upcoming").textContent = tasks.filter(x => !x.done && x.due && x.due > t).length || "";
+    document.getElementById("c-all").textContent = tasks.filter(x => !x.done).length || "";
+    document.getElementById("c-done").textContent = tasks.filter(x => x.done).length || "";
+    document.getElementById("viewTitle").textContent = titles[view];
+
+    // Progreso
+    const total = tasks.length, done = tasks.filter(x => x.done).length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById("pct").textContent = pct + "%";
+    document.getElementById("progressFill").style.width = pct + "%";
+  }
+
+  // ===== Eventos =====
+  const input = document.getElementById("newTask");
+  const prioSel = document.getElementById("prio");
+  const dueInp = document.getElementById("due");
+  function doAdd() { addTask(input.value, prioSel.value, dueInp.value); input.value = ""; dueInp.value = ""; prioSel.value = "4"; input.focus(); }
+  document.getElementById("addBtn").onclick = doAdd;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") doAdd(); });
+
+  document.querySelectorAll(".nav-item[data-view]").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelector(".nav-item.active").classList.remove("active");
+      btn.classList.add("active");
+      view = btn.dataset.view;
+      document.getElementById("sidebar").classList.remove("open");
       render();
-    }
-    function toggleTask(id) {
-      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
-      save();
-      render();
-    }
-    function deleteTask(id) {
-      tasks = tasks.filter(t => t.id !== id);
-      save();
-      render();
-    }
+    };
+  });
 
-    // --- Pintar en pantalla ---
-    function render() {
-      const list = document.getElementById("list");
-      list.innerHTML = "";
+  // Tema claro/oscuro
+  const themeBtn = document.getElementById("themeToggle");
+  function applyTheme(mode) {
+    document.documentElement.setAttribute("data-theme", mode);
+    themeBtn.innerHTML = mode === "dark" ? '<span class="ic">☀</span> Modo claro' : '<span class="ic">☾</span> Modo oscuro';
+    try { localStorage.setItem("pmr_theme", mode); } catch(e) {}
+  }
+  themeBtn.onclick = () => applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  let savedTheme = "light";
+  try { savedTheme = localStorage.getItem("pmr_theme") || "light"; } catch(e) {}
+  applyTheme(savedTheme);
 
-      const visible = tasks.filter(t =>
-        filter === "all" ? true : filter === "done" ? t.done : !t.done
-      );
+  // Menú móvil
+  document.getElementById("menuBtn").onclick = () => document.getElementById("sidebar").classList.toggle("open");
 
-      if (visible.length === 0) {
-        list.innerHTML = '<p class="empty">No hay tareas aquí todavía.</p>';
-      } else {
-        visible.forEach(t => {
-          const li = document.createElement("li");
-          if (t.done) li.className = "done";
-          li.innerHTML = `
-            <div class="check">${t.done ? "✓" : ""}</div>
-            <span class="text"></span>
-            <button class="del">✕</button>`;
-          li.querySelector(".text").textContent = t.text;
-          li.querySelector(".check").onclick = () => toggleTask(t.id);
-          li.querySelector(".del").onclick = () => deleteTask(t.id);
-          list.appendChild(li);
-        });
-      }
+  // Fecha de hoy en cabecera
+  document.getElementById("todayDate").textContent = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
 
-      const pending = tasks.filter(t => !t.done).length;
-      document.getElementById("footer").textContent =
-        tasks.length === 0 ? "" : `${pending} pendiente(s) de ${tasks.length}`;
-    }
-
-    // --- Conectar botones e input ---
-    const input = document.getElementById("newTask");
-    document.getElementById("addBtn").onclick = () => { addTask(input.value); input.value = ""; input.focus(); };
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") { addTask(input.value); input.value = ""; }
-    });
-    document.querySelectorAll(".filter").forEach(btn => {
-      btn.onclick = () => {
-        document.querySelector(".filter.active").classList.remove("active");
-        btn.classList.add("active");
-        filter = btn.dataset.filter;
-        render();
-      };
-    });
-
-    render();
-  </script>
+  render();
+</script>
 </body>
 </html>
