@@ -39,6 +39,46 @@
     transition: background .25s, color .25s;
   }
 
+  /* ===== Pantalla de acceso (login / registro) ===== */
+  .auth-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .auth-card {
+    width: 100%; max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 34px 30px;
+  }
+  .auth-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 26px; }
+  .auth-brand .logo { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 15px; }
+  .auth-brand b { font-size: 18px; }
+  .auth-brand span { font-size: 12px; color: var(--text-soft); display: block; margin-top: -2px; }
+  .auth-tabs { display: flex; gap: 6px; background: var(--bg); padding: 4px; border-radius: 10px; margin-bottom: 20px; }
+  .auth-tab { flex: 1; border: none; background: none; padding: 9px; border-radius: 7px; font-size: 14px; color: var(--text-soft); cursor: pointer; font-weight: 500; }
+  .auth-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); font-weight: 600; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 12px; color: var(--text-soft); margin-bottom: 6px; font-weight: 600; }
+  .auth-field input {
+    width: 100%; border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    border-radius: 10px; padding: 12px 13px; font-size: 14px; outline: none;
+  }
+  .auth-field input:focus { border-color: var(--accent); }
+  .auth-btn {
+    width: 100%; border: none; background: var(--accent); color: #fff;
+    padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
+    margin-top: 6px; transition: filter .15s;
+  }
+  .auth-btn:hover { filter: brightness(1.08); }
+  .auth-btn:disabled { opacity: .6; cursor: default; }
+  .auth-msg { font-size: 13px; margin-top: 14px; text-align: center; min-height: 18px; }
+  .auth-msg.err { color: var(--accent); }
+  .auth-msg.ok { color: #2e9e5b; }
+
   /* Sidebar */
   .sidebar {
     width: 250px;
@@ -75,7 +115,10 @@
   .nav-item .count { margin-left: auto; font-size: 12px; color: var(--text-soft); }
   .nav-item.active .count { color: var(--accent); }
   .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text-soft); padding: 16px 11px 6px; font-weight: 600; }
-  .theme-toggle { margin-top: auto; }
+  .side-footer { margin-top: auto; }
+  .user-box { display: flex; align-items: center; gap: 9px; padding: 9px 11px; font-size: 12px; color: var(--text-soft); border-top: 1px solid var(--border); margin-top: 8px; padding-top: 14px; }
+  .user-box .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .user-box .email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* Main */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -168,6 +211,32 @@
 </style>
 </head>
 <body>
+
+  <!-- ===== Pantalla de acceso ===== -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="logo">PMR</div>
+        <div><b>Tareas</b><span>by PMR Industries</span></div>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin">Entrar</button>
+        <button class="auth-tab" id="tabRegister">Crear cuenta</button>
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Contraseña</label>
+        <input type="password" id="authPass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="authBtn">Entrar</button>
+      <div class="auth-msg" id="authMsg"></div>
+    </div>
+  </div>
+
+  <!-- ===== App ===== -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="logo">PMR</div>
@@ -178,7 +247,14 @@
     <button class="nav-item" data-view="all"><span class="ic">≡</span> Todas <span class="count" id="c-all"></span></button>
     <button class="nav-item" data-view="done"><span class="ic">✓</span> Completadas <span class="count" id="c-done"></span></button>
 
-    <button class="nav-item theme-toggle" id="themeToggle"><span class="ic">☾</span> Modo oscuro</button>
+    <div class="side-footer">
+      <button class="nav-item" id="themeToggle"><span class="ic">☾</span> Modo oscuro</button>
+      <button class="nav-item" id="logoutBtn"><span class="ic">⎋</span> Cerrar sesión</button>
+      <div class="user-box">
+        <div class="avatar" id="userAvatar">?</div>
+        <div class="email" id="userEmail">—</div>
+      </div>
+    </div>
   </aside>
 
   <main class="main">
@@ -213,23 +289,123 @@
     </div>
   </main>
 
-<script>
-  // ===== Capa de datos (fácil de cambiar por Supabase más adelante) =====
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  // ===== Conexión a Supabase =====
+  const SUPABASE_URL = "https://yyadbtxsvyrbyzbwxwsh.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5YWRidHhzdnlyYnl6Ynd4d3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTc0MjQsImV4cCI6MjEwNDUzMzQyNH0.xNHbLlOAUzomPftaWhQ5WmQQWRPWQPVroCSdtDY3v58";
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ===== Estado =====
   let tasks = [];
   let view = "today";
+  let user = null;
 
-  try { const s = localStorage.getItem("pmr_tasks"); if (s) tasks = JSON.parse(s); }
-  catch (e) {}
-  function save() { try { localStorage.setItem("pmr_tasks", JSON.stringify(tasks)); } catch (e) {} }
+  // ===== Autenticación =====
+  const authScreen = document.getElementById("authScreen");
+  const authEmail = document.getElementById("authEmail");
+  const authPass = document.getElementById("authPass");
+  const authBtn = document.getElementById("authBtn");
+  const authMsg = document.getElementById("authMsg");
+  const tabLogin = document.getElementById("tabLogin");
+  const tabRegister = document.getElementById("tabRegister");
+  let mode = "login"; // "login" | "register"
 
-  function addTask(text, prio, due) {
-    const clean = text.trim();
-    if (!clean) return;
-    tasks.push({ id: Date.now(), text: clean, prio: Number(prio) || 4, due: due || null, done: false });
-    save(); render();
+  function setMode(m) {
+    mode = m;
+    tabLogin.classList.toggle("active", m === "login");
+    tabRegister.classList.toggle("active", m === "register");
+    authBtn.textContent = m === "login" ? "Entrar" : "Crear cuenta";
+    authMsg.textContent = ""; authMsg.className = "auth-msg";
+    authPass.setAttribute("autocomplete", m === "login" ? "current-password" : "new-password");
   }
-  function toggle(id) { tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t); save(); render(); }
-  function remove(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
+  tabLogin.onclick = () => setMode("login");
+  tabRegister.onclick = () => setMode("register");
+
+  function showMsg(text, type) { authMsg.textContent = text; authMsg.className = "auth-msg " + (type || ""); }
+
+  async function doAuth() {
+    const email = authEmail.value.trim();
+    const pass = authPass.value;
+    if (!email || !pass) { showMsg("Rellena email y contraseña.", "err"); return; }
+    if (pass.length < 6) { showMsg("La contraseña debe tener al menos 6 caracteres.", "err"); return; }
+    authBtn.disabled = true;
+    try {
+      if (mode === "login") {
+        const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+      } else {
+        const { data, error } = await sb.auth.signUp({ email, password: pass });
+        if (error) throw error;
+        if (data && data.user && !data.session) {
+          showMsg("Cuenta creada. Revisa tu email para confirmar y luego entra.", "ok");
+          authBtn.disabled = false;
+          return;
+        }
+      }
+    } catch (e) {
+      let m = e.message || "Error de acceso.";
+      if (/invalid login/i.test(m)) m = "Email o contraseña incorrectos.";
+      if (/already registered/i.test(m)) m = "Ese email ya tiene cuenta. Entra en su lugar.";
+      showMsg(m, "err");
+      authBtn.disabled = false;
+    }
+  }
+  authBtn.onclick = doAuth;
+  authPass.addEventListener("keydown", e => { if (e.key === "Enter") doAuth(); });
+
+  document.getElementById("logoutBtn").onclick = async () => { await sb.auth.signOut(); };
+
+  // Reacciona a login / logout
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    user = session ? session.user : null;
+    if (user) {
+      authScreen.style.display = "none";
+      authBtn.disabled = false;
+      document.getElementById("userEmail").textContent = user.email;
+      document.getElementById("userAvatar").textContent = (user.email[0] || "?").toUpperCase();
+      await loadTasks();
+    } else {
+      authScreen.style.display = "flex";
+      tasks = [];
+      render();
+    }
+  });
+
+  // ===== Capa de datos (Supabase) =====
+  async function loadTasks() {
+    const { data, error } = await sb.from("tasks").select("*").order("created_at", { ascending: true });
+    if (error) { console.error(error); return; }
+    tasks = (data || []).map(r => ({ id: r.id, text: r.text, prio: r.priority, due: r.due_date, done: r.done }));
+    render();
+  }
+
+  async function addTask(text, prio, due) {
+    const clean = text.trim();
+    if (!clean || !user) return;
+    const row = { user_id: user.id, text: clean, priority: Number(prio) || 4, due_date: due || null, done: false };
+    const { data, error } = await sb.from("tasks").insert(row).select().single();
+    if (error) { console.error(error); return; }
+    tasks.push({ id: data.id, text: data.text, prio: data.priority, due: data.due_date, done: data.done });
+    render();
+  }
+
+  async function toggle(id) {
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+    const newDone = !t.done;
+    t.done = newDone; render();
+    const { error } = await sb.from("tasks").update({ done: newDone }).eq("id", id);
+    if (error) { console.error(error); t.done = !newDone; render(); }
+  }
+
+  async function remove(id) {
+    const prev = tasks;
+    tasks = tasks.filter(t => t.id !== id); render();
+    const { error } = await sb.from("tasks").delete().eq("id", id);
+    if (error) { console.error(error); tasks = prev; render(); }
+  }
 
   // ===== Utilidades de fecha =====
   function todayStr() { const d = new Date(); return d.toISOString().slice(0,10); }
@@ -332,6 +508,7 @@
   // Fecha de hoy en cabecera
   document.getElementById("todayDate").textContent = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
 
+  setMode("login");
   render();
 </script>
 </body>
